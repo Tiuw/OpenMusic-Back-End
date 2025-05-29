@@ -1,7 +1,9 @@
+/* eslint-disable no-unused-vars */
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
+const { mapDBToModel } = require('../../utils');
 
 class AlbumsService {
   constructor() {
@@ -39,7 +41,13 @@ class AlbumsService {
       throw new NotFoundError('Album tidak ditemukan');
     }
 
-    return result.rows[0];
+    // Format response untuk albums (hanya id, name, year)
+    const album = result.rows[0];
+    return {
+      id: album.id,
+      name: album.name,
+      year: album.year,
+    };
   }
 
   async editAlbumById(id, { name, year }) {
