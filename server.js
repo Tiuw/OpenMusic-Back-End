@@ -4,13 +4,9 @@ const Hapi = require('@hapi/hapi');
 const albums = require('./src/api/albums');
 const songs = require('./src/api/songs');
 
-// PostgreSQL Services
-const AlbumsService = require('./src/services/postgres/AlbumsService');
-const SongsService = require('./src/services/postgres/SongsService');
-
-// In-Memory Services (for fallback)
-// const AlbumsService = require('./src/services/inMemory/AlbumsService');
-// const SongsService = require('./src/services/inMemory/SongsService');
+// Use in-memory services for now to test
+const AlbumsService = require('./src/services/inMemory/AlbumsService');
+const SongsService = require('./src/services/inMemory/SongsService');
 
 const AlbumsValidator = require('./src/validator/albums');
 const SongsValidator = require('./src/validator/songs');
@@ -29,27 +25,45 @@ const init = async () => {
     },
   });
 
-  await server.register([
-    {
-      plugin: albums,
-      options: {
-        service: albumsService,
-        validator: AlbumsValidator,
+  // Add some debug logging
+  console.log('Registering plugins...');
+
+  try {
+    await server.register([
+      {
+        plugin: albums,
+        options: {
+          service: albumsService,
+          validator: AlbumsValidator,
+        },
       },
-    },
-    {
-      plugin: songs,
-      options: {
-        service: songsService,
-        validator: SongsValidator,
+      {
+        plugin: songs,
+        options: {
+          service: songsService,
+          validator: SongsValidator,
+        },
       },
-    },
-  ]);
+    ]);
+
+    console.log('Plugins registered successfully');
+
+    // Log all registered routes
+    console.log('Registered routes:');
+    server.table().forEach((route) => {
+      console.log(`${route.method.toUpperCase()} ${route.path}`);
+    });
+  } catch (error) {
+    console.error('Error registering plugins:', error);
+    process.exit(1);
+  }
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
 
     if (response instanceof Error) {
+      console.log('Error caught:', response.message);
+
       if (response.statusCode === 400) {
         const newResponse = h.response({
           status: 'fail',
