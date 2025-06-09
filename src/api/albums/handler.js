@@ -1,8 +1,7 @@
 class AlbumsHandler {
-  constructor(service, validator, songsService) {
+  constructor(service, validator) {
     this._service = service;
     this._validator = validator;
-    this._songsService = songsService;
 
     this.postAlbumHandler = this.postAlbumHandler.bind(this);
     this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
@@ -30,29 +29,10 @@ class AlbumsHandler {
     const { id } = request.params;
     const album = await this._service.getAlbumById(id);
 
-    // Get songs for this album
-    const allSongs = await this._songsService.getSongs({});
-    const albumSongs = [];
-
-    // Filter songs that belong to this album
-    for (const song of allSongs) {
-      const fullSong = await this._songsService.getSongById(song.id);
-      if (fullSong.albumId === id) {
-        albumSongs.push({
-          id: song.id,
-          title: song.title,
-          performer: song.performer,
-        });
-      }
-    }
-
     return {
       status: 'success',
       data: {
-        album: {
-          ...album,
-          songs: albumSongs,
-        },
+        album,
       },
     };
   }

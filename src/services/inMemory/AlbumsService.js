@@ -3,8 +3,9 @@ const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
 class AlbumsService {
-  constructor() {
+  constructor(songsService) {
     this._albums = [];
+    this._songsService = songsService;
   }
 
   addAlbum({ name, year }) {
@@ -37,7 +38,25 @@ class AlbumsService {
     if (!album) {
       throw new NotFoundError('Album tidak ditemukan');
     }
-    return album;
+
+    // Get songs that belong to this album
+    let songs = [];
+    if (this._songsService) {
+      songs = this._songsService._songs
+        .filter((song) => song.albumId === id)
+        .map((song) => ({
+          id: song.id,
+          title: song.title,
+          performer: song.performer,
+        }));
+    }
+
+    return {
+      id: album.id,
+      name: album.name,
+      year: album.year,
+      songs,
+    };
   }
 
   editAlbumById(id, { name, year }) {

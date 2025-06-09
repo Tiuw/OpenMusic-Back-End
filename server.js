@@ -1,4 +1,3 @@
-/* eslint-disable object-shorthand */
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
@@ -13,8 +12,8 @@ const AlbumsValidator = require('./src/validator/albums');
 const SongsValidator = require('./src/validator/songs');
 
 const init = async () => {
-  const albumsService = new AlbumsService();
   const songsService = new SongsService();
+  const albumsService = new AlbumsService(songsService); // Pass songsService here
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -26,7 +25,6 @@ const init = async () => {
     },
   });
 
-  // Add some debug logging
   console.log('Registering plugins...');
 
   try {
@@ -36,7 +34,7 @@ const init = async () => {
         options: {
           service: albumsService,
           validator: AlbumsValidator,
-          songsService: songsService, // Add this line
+          songsService: songsService,
         },
       },
       {
@@ -50,8 +48,6 @@ const init = async () => {
 
     console.log('Plugins registered successfully');
 
-    // Log all registered routes
-    console.log('Registered routes:');
     server.table().forEach((route) => {
       console.log(`${route.method.toUpperCase()} ${route.path}`);
     });
