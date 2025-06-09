@@ -1,4 +1,3 @@
-/* eslint-disable object-curly-newline */
 const mapDBToModel = ({
   id,
   title,

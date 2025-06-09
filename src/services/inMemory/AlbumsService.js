@@ -22,7 +22,8 @@ class AlbumsService {
 
     this._albums.push(newAlbum);
 
-    const isSuccess = this._albums.filter((album) => album.id === id).length > 0;
+    const isSuccess =
+      this._albums.filter((album) => album.id === id).length > 0;
 
     if (!isSuccess) {
       throw new InvariantError('Album gagal ditambahkan');

@@ -1,3 +1,4 @@
+/* eslint-disable object-shorthand */
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
@@ -35,6 +36,7 @@ const init = async () => {
         options: {
           service: albumsService,
           validator: AlbumsValidator,
+          songsService: songsService, // Add this line
         },
       },
       {

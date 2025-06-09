@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
@@ -30,23 +29,31 @@ class AlbumsService {
   }
 
   async getAlbumById(id) {
-    const query = {
+    const albumQuery = {
       text: 'SELECT * FROM albums WHERE id = $1',
       values: [id],
     };
 
-    const result = await this._pool.query(query);
+    const albumResult = await this._pool.query(albumQuery);
 
-    if (!result.rows.length) {
+    if (!albumResult.rows.length) {
       throw new NotFoundError('Album tidak ditemukan');
     }
 
-    // Format response untuk albums (hanya id, name, year)
-    const album = result.rows[0];
+    // Get songs that belong to this album
+    const songsQuery = {
+      text: 'SELECT id, title, performer FROM songs WHERE album_id = $1',
+      values: [id],
+    };
+
+    const songsResult = await this._pool.query(songsQuery);
+
+    const album = albumResult.rows[0];
     return {
       id: album.id,
       name: album.name,
       year: album.year,
+      songs: songsResult.rows,
     };
   }
 

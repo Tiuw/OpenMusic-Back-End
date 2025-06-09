@@ -1,5 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable object-curly-newline */
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');

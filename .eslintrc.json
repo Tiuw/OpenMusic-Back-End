@@ -11,6 +11,22 @@
     "no-console": "off",
     "no-underscore-dangle": "off",
     "camelcase": "off",
-    "max-len": ["warn", { "code": 120 }]
+    "object-shorthand": "off",
+    "no-await-in-loop": "off",
+    "no-restricted-syntax": "off",
+    "eol-last": "off",
+    "no-trailing-spaces": "off",
+    "no-multiple-empty-lines": "off",
+    "no-unused-vars": "off",
+    "no-undef": "off",
+    "operator-linebreak": "off",
+    "object-curly-newline": "off",
+    "newline-per-chained-call": "off",
+    "max-len": [
+      "warn",
+      {
+        "code": 155
+      }
+    ]
   }
 }

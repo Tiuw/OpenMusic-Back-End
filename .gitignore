@@ -2,3 +2,4 @@ node_modules
 openMusic-api-webserver.pem
 .env
 .prod.env
+postman
