@@ -18,14 +18,16 @@ class PlaylistsHandler {
   }
 
   async postPlaylistHandler(request, h) {
-    this._validator.validatePostPlaylistPayload(request.payload);
-    const { name } = request.payload;
+    // Move authentication check BEFORE payload validation
     const { authorization } = request.headers;
 
     if (!authorization || !authorization.startsWith('Bearer ')) {
       throw new AuthenticationError('Missing authentication');
     }
 
+    // Only validate payload after authentication is confirmed
+    this._validator.validatePostPlaylistPayload(request.payload);
+    const { name } = request.payload;
     const token = authorization.replace('Bearer ', '');
     const { userId } = this._tokenManager.verifyAccessToken(token);
 
