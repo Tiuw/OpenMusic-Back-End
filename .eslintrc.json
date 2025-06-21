@@ -3,29 +3,22 @@
     "es2021": true,
     "node": true
   },
-  "extends": ["airbnb-base"],
+  "extends": ["airbnb-base", "prettier"],
+  "plugins": ["prettier"],
   "parserOptions": {
     "ecmaVersion": 2020
   },
   "rules": {
     "no-console": "off",
     "no-underscore-dangle": "off",
-    "camelcase": "off",
-    "object-shorthand": "off",
-    "no-await-in-loop": "off",
-    "no-restricted-syntax": "off",
-    "eol-last": "off",
-    "no-trailing-spaces": "off",
-    "no-multiple-empty-lines": "off",
-    "no-unused-vars": "off",
-    "no-undef": "off",
-    "operator-linebreak": "off",
-    "object-curly-newline": "off",
-    "newline-per-chained-call": "off",
-    "max-len": [
-      "warn",
+    "prettier/prettier": [
+      "error",
       {
-        "code": 155
+        "singleQuote": true,
+        "trailingComma": "all",
+        "printWidth": 80,
+        "tabWidth": 2,
+        "semi": true
       }
     ]
   }
