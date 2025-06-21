@@ -4,11 +4,13 @@ class CollaborationsHandler {
   constructor(
     collaborationsService,
     playlistsService,
+    usersService, // Move usersService to 3rd position
     validator,
     tokenManager
   ) {
     this._collaborationsService = collaborationsService;
     this._playlistsService = playlistsService;
+    this._usersService = usersService;
     this._validator = validator;
     this._tokenManager = tokenManager;
 
@@ -31,6 +33,10 @@ class CollaborationsHandler {
       this._tokenManager.verifyAccessToken(token);
 
     await this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);
+    
+    // This will throw NotFoundError (404) if user doesn't exist
+    await this._usersService.getUserById(userId);
+    
     const collaborationId = await this._collaborationsService.addCollaboration(
       playlistId,
       userId
