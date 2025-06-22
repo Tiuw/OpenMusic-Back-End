@@ -28,7 +28,7 @@ const AuthenticationsValidator = require('./src/validator/authentications');
 
 // playlists
 const playlists = require('./src/api/playlists');
-const PlaylistsService = require('./src/services/postgres/PlaylistService');
+const PlaylistsService = require('./src/services/postgres/PlaylistsService');
 const PlaylistsValidator = require('./src/validator/playlists');
 
 // collaborations
