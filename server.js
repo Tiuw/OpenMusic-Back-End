@@ -36,15 +36,26 @@ const collaborations = require('./src/api/collaborations');
 const CollaborationsService = require('./src/services/postgres/CollaborationsService');
 const CollaborationsValidator = require('./src/validator/collaborations');
 
+// uploads
+const StorageService = require('./src/services/storage/StorageService');
+const UploadsValidator = require('./src/validator/uploads');
+
+// cache
+const CacheService = require('./src/services/redis/CacheService');
+
 const ClientError = require('./src/exceptions/ClientError');
 
 const init = async () => {
-  const albumsService = new AlbumsService();
+  const cacheService = new CacheService();
+  const albumsService = new AlbumsService(cacheService);
   const songsService = new SongsService();
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
   const collaborationsService = new CollaborationsService();
   const playlistsService = new PlaylistsService(collaborationsService);
+  const storageService = new StorageService(
+    path.resolve(__dirname, 'src/uploads/images')
+  );
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -65,6 +76,17 @@ const init = async () => {
       plugin: Inert,
     },
   ]);
+
+  // serve static files
+  server.route({
+    method: 'GET',
+    path: '/upload/{param*}',
+    handler: {
+      directory: {
+        path: path.resolve(__dirname, 'src/uploads'),
+      },
+    },
+  });
 
   // mendefinisikan strategy autentikasi jwt
   server.auth.strategy('openmusic_jwt', 'jwt', {
@@ -89,6 +111,8 @@ const init = async () => {
       options: {
         service: albumsService,
         validator: AlbumsValidator,
+        storageService,
+        uploadsValidator: UploadsValidator,
       },
     },
     {
@@ -132,11 +156,39 @@ const init = async () => {
         tokenManager: TokenManager,
       },
     },
+    {
+      plugin: require('./src/api/exports'),
+      options: {
+        producerService: require('./src/services/rabbitmq/ProducerService'),
+        playlistsService,
+        validator: require('./src/validator/exports'),
+        tokenManager: require('./src/services/TokenManager'),
+      },
+    },
   ]);
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
     if (response instanceof Error) {
+      // Handle Hapi payload errors
+      if (response.output && response.output.statusCode === 415) {
+        const newResponse = h.response({
+          status: 'fail',
+          message: 'File harus berupa gambar',
+        });
+        newResponse.code(400);
+        return newResponse;
+      }
+
+      if (response.output && response.output.statusCode === 413) {
+        const newResponse = h.response({
+          status: 'fail',
+          message: 'File terlalu besar',
+        });
+        newResponse.code(413);
+        return newResponse;
+      }
+
       if (response instanceof ClientError) {
         const newResponse = h.response({
           status: 'fail',
@@ -145,9 +197,11 @@ const init = async () => {
         newResponse.code(response.statusCode);
         return newResponse;
       }
+      
       if (!response.isServer) {
         return h.continue;
       }
+      
       const newResponse = h.response({
         status: 'error',
         message: 'terjadi kegagalan pada server kami',
