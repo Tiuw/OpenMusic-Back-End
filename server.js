@@ -64,6 +64,7 @@ const init = async () => {
       cors: {
         origin: ['*'],
       },
+      // Make sure there's no payload restrictions here
     },
   });
 
@@ -169,18 +170,13 @@ const init = async () => {
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
-    if (response instanceof Error) {
-      // Handle Hapi payload errors
-      if (response.output && response.output.statusCode === 415) {
-        const newResponse = h.response({
-          status: 'fail',
-          message: 'File harus berupa gambar',
-        });
-        newResponse.code(400);
-        return newResponse;
-      }
 
-      if (response.output && response.output.statusCode === 413) {
+    if (response instanceof Error) {
+      // Remove this debug line
+      // console.log('Error caught:', response.message, 'Status:', response.output?.statusCode);
+
+      // Handle payload too large (413)
+      if (response.output?.statusCode === 413) {
         const newResponse = h.response({
           status: 'fail',
           message: 'File terlalu besar',
@@ -189,6 +185,17 @@ const init = async () => {
         return newResponse;
       }
 
+      // Handle unsupported media type (415)
+      if (response.output?.statusCode === 415) {
+        const newResponse = h.response({
+          status: 'fail',
+          message: 'File harus berupa gambar',
+        });
+        newResponse.code(400);
+        return newResponse;
+      }
+
+      // Handle client errors
       if (response instanceof ClientError) {
         const newResponse = h.response({
           status: 'fail',
@@ -197,19 +204,22 @@ const init = async () => {
         newResponse.code(response.statusCode);
         return newResponse;
       }
-      
+
+      // Handle other non-server errors
       if (!response.isServer) {
         return h.continue;
       }
-      
+
+      // Handle server errors
       const newResponse = h.response({
         status: 'error',
         message: 'terjadi kegagalan pada server kami',
       });
       newResponse.code(500);
-      console.error(response);
+      console.error(response); // Keep this one as it's for actual errors
       return newResponse;
     }
+
     return h.continue;
   });
 

@@ -57,13 +57,21 @@ class AlbumsService {
     const songsResult = await this._pool.query(songsQuery);
 
     const album = albumResult.rows[0];
-    return {
+    const result = {
       id: album.id,
       name: album.name,
       year: album.year,
-      coverUrl: album.cover_url || null, // Ensure null if no cover
       songs: songsResult.rows,
     };
+
+    // Only add coverUrl if it exists and is not null
+    if (album.cover_url) {
+      result.coverUrl = album.cover_url;
+    } else {
+      result.coverUrl = null;
+    }
+
+    return result;
   }
 
   async editAlbumById(id, { name, year }) {

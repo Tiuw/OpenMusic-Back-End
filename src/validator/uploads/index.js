@@ -6,7 +6,6 @@ const UploadsValidator = {
     const validationResult = ImageHeadersSchema.validate(headers);
 
     if (validationResult.error) {
-      // Return 400 status code for invalid file types
       throw new InvariantError('File harus berupa gambar');
     }
   },

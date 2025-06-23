@@ -1,4 +1,5 @@
 const ClientError = require('../../exceptions/ClientError');
+const InvariantError = require('../../exceptions/InvariantError'); // ADD THIS LINE
 
 class AlbumsHandler {
   constructor(service, validator, storageService, uploadsValidator) {
@@ -68,62 +69,28 @@ class AlbumsHandler {
   }
 
   async postUploadImageHandler(request, h) {
-    try {
-      const { cover } = request.payload;
-      const { id } = request.params;
+    const { cover } = request.payload;
+    const { id } = request.params;
 
-      // Check if file exists
-      if (!cover || !cover.hapi || !cover.hapi.headers) {
-        const response = h.response({
-          status: 'fail',
-          message: 'File tidak ditemukan',
-        });
-        response.code(400);
-        return response;
-      }
+    if (!cover) {
+      throw new InvariantError('File cover harus diunggah');
+    }
 
-      // Validate image headers using validator FIRST
-      try {
-        this._uploadsValidator.validateImageHeaders(cover.hapi.headers);
-      } catch (error) {
-        const response = h.response({
-          status: 'fail',
-          message: 'File harus berupa gambar',
-        });
-        response.code(400);
-        return response;
-      }
+    // Validate headers
+    this._uploadsValidator.validateImageHeaders(cover.hapi.headers);
 
-      // Upload file and get filename
-      const filename = await this._storageService.writeFile(cover, cover.hapi);
+    // Write file
+    const filename = await this._storageService.writeFile(cover, cover.hapi);
 
-      // Add cover to album
-      await this._service.addAlbumCover(id, filename);
+    // Update database
+    await this._service.addAlbumCover(id, filename);
 
-      const response = h.response({
+    return h
+      .response({
         status: 'success',
         message: 'Sampul berhasil diunggah',
-      });
-      response.code(201);
-      return response;
-    } catch (error) {
-      if (error instanceof ClientError) {
-        const response = h.response({
-          status: 'fail',
-          message: error.message,
-        });
-        response.code(error.statusCode);
-        return response;
-      }
-
-      const response = h.response({
-        status: 'error',
-        message: 'Maaf, terjadi kegagalan pada server kami.',
-      });
-      response.code(500);
-      console.error(error);
-      return response;
-    }
+      })
+      .code(201);
   }
 
   async postAlbumLikeHandler(request, h) {

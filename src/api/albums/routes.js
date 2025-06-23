@@ -25,23 +25,10 @@ const routes = (handler) => [
     handler: handler.postUploadImageHandler,
     options: {
       payload: {
-        allow: 'multipart/form-data',
         multipart: true,
         output: 'stream',
-        maxBytes: 512000, // 512KB
-        parse: true,
+        maxBytes: 512000,
         timeout: false,
-        failAction: (request, h, error) => {
-          if (error.output.statusCode === 413) {
-            const response = h.response({
-              status: 'fail',
-              message: 'File terlalu besar',
-            });
-            response.code(413);
-            return response;
-          }
-          throw error;
-        },
       },
     },
   },
