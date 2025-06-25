@@ -20,7 +20,7 @@ class ExportsHandler {
 
     // Only validate payload after authentication is confirmed
     this._validator.validateExportPlaylistPayload(request.payload);
-    
+
     const { playlistId } = request.params;
     const { targetEmail } = request.payload;
 
